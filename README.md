@@ -1,14 +1,10 @@
-# Welcome view content
+# FileManager: Simple file manager extension
+> *Like mc, but for vscode.*
 
-This sample demonstrates how to implement welcome view content, which gets displayed in certain views whenever they are empty.
+This extentions provides simple file manager for comfortable navigating in your file system even if files or directories are outside your workspace. You can open files directly from extention to edit them.
 
-Run the sample and run `Close Workspace`. In the _no workspace_ window, go to the Explorer. You'll see the content contributed via the `package.json` declaration.
+It will be improved and new features will be added.
 
-## Running the Sample
+---
 
-- Open this example in VS Code Insiders
-- `npm install`
-- `npm run watch`
-- `F5` to start debugging
-- Run the `Workspaces: Close Workspace` command
-- Open the Explorer view
+**Author**: Artemiy Shvedov <artemiy_shvedov@mail.ru>

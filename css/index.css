@@ -1,0 +1,47 @@
+body, h1, h2, h3, h4, p, a, li, ul, ol {
+    margin: 0;
+    font-size: 100%;
+    font-weight: normal;
+    padding: 0;
+    color: inherit;
+}
+
+body {
+    color: white;
+}
+
+a:hover, a:focus {
+    color: inherit;
+}
+
+.curentDir {
+    margin-left: 20px;
+    font-size: 26px;
+    text-decoration: underline;
+}
+
+.element {
+    font-family: monospace;
+    font-size: 100%;
+    width: 100%;
+}
+
+/* .element:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+} */
+
+.element-selected {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.element-t-dir {
+    color: darkturquoise;
+}
+
+.element-t-file {
+    color: aliceblue;
+}
+
+.element-t-symlink {
+    color: goldenrod;
+}

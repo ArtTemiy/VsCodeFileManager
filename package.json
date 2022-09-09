@@ -1,0 +1,77 @@
+{
+  "name": "FileManager",
+  "publisher": "vscode-samples",
+  "description": "Uri Handler Sample",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.46.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "FileManager.hello",
+        "title": "Hello World!",
+        "category": "FileManager"
+      },
+      {
+        "command": "FileManager.openFileManager",
+        "title": "Open file manager",
+        "category": "FileManager"
+      }
+    ],
+    "viewsWelcome": [
+      {
+        "view": "workbench.explorer.emptyView",
+        "contents": "You can have paragraphs of text here. You can have [links](https://code.visualstudio.com) to external sources or [internal commands](command:FileManager.hello).\nUse new lines to have new paragraphs.\nPlace a link alone in a paragraph to make it a button\n[Hello](command:FileManager.hello)"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "rollup -c",
+    "compile-watch": "rollup -c -w",
+    "watch": "",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.8.5",
+    "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^16.11.56",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.6",
+    "@types/vscode": "^1.46.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "@vscode/test-electron": "^1.6.1",
+    "eslint": "^8.13.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.1.3",
+    "node-sass": "^7.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
+    "react-scripts": "^5.0.1",
+    "redux": "^4.2.0",
+    "redux-logger": "^3.0.6",
+    "rollup": "^2.79.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-ts": "^3.0.2",
+    "typescript": "^4.8.2"
+  }
+}
