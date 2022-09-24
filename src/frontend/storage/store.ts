@@ -9,6 +9,8 @@ export const store = configureStore({
     middleware: [logger],
     preloadedState: {
         directory: {
+            loadingState: "loading",
+            prevDir: undefined,
             currentDir: undefined,
             elementsList: undefined
         },

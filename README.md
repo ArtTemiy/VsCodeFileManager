@@ -7,4 +7,4 @@ It will be improved and new features will be added.
 
 ---
 
-**Author**: Artemiy Shvedov <artemiy_shvedov@mail.ru>
+**Author**: Artemiy Shvedov (<artemiy_shvedov@mail.ru>)

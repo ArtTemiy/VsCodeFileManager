@@ -6,7 +6,7 @@ import replace from 'rollup-plugin-replace';
 
 export default [ 
     {
-        input: 'src/index.tsx',
+        input: 'src/frontend/index.tsx',
         output: {
             dir: 'out',
             format: 'es'
@@ -24,7 +24,7 @@ export default [
         ]
     },
     {
-        input: 'src/extension.ts',
+        input: 'src/backend/extension.ts',
         output: {
             dir: 'out',
             format: 'cjs'

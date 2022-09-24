@@ -1,47 +1,64 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-import { ClientMessage } from "../types/ClientMessage";
-import { ElementInfo } from "../types/ElementInfo";
+import { ClientGoToDirMessage, ClientMessage, ClientOpenFileMessage } from "../../types/ClientMessage";
+import { ElementInfo } from "../../types/ElementInfo";
+import { setLoadingState } from "../storage/directorySlice";
 
-import { selectorCurrentDirAndElements } from "../storage/selectors";
+import { selecorDataLoadingState, selectorCurrentDirAndElements, selectorDataLoaded } from "../storage/selectors";
 import { getElementStyle } from "../utils/stylesSelectors";
-import { vscode } from "./ToolsContext";
+import { vscode } from "../../ToolsContext";
+import { vscodeClient } from "../../vscode-api/client/client";
+import { uris } from "../../constants";
+import { DirContentDescription } from "../../types/ServerMessage";
+import { ClientInitDirMessage } from "../../types/ClientMessage";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FilesList = () => {
-  const { currentDir, elementsList } = useSelector(selectorCurrentDirAndElements);
+  const [{ currentDir, elementsList }, setDirInfo] = useState({
+    currentDir: undefined,
+    elementsList: []
+  });
   const [selected, setSelected] = useState(0);
+  useEffect(() => {
+    console.debug("use effect called");
+    
+    vscodeClient.sendRequest(uris.initDir, "POST", {}, (data: DirContentDescription) => {
+      setDirInfo({
+        currentDir: data.currentDir,
+        elementsList: data.elementsList
+      });
+      data.prevDir && setSelected(data.elementsList.findIndex(el => el.name === data.prevDir));
+    });
+  }, []);
 
   function sendClientGoToDirMessage(dirName: string) {
-    const message: ClientMessage = {
-      type: "GoToDir",
-      payload: {
-        currentDir: currentDir,
-        dirName: dirName,
-      }
+    const request: ClientGoToDirMessage = {
+      currentDir: currentDir,
+      dirName: dirName,
     };
-    vscode.postMessage(message);
+    vscodeClient.sendRequest(uris.goToDir, "POST", request, (data: DirContentDescription) => {
+      setDirInfo({
+        currentDir: data.currentDir,
+        elementsList: data.elementsList
+      });
+      setSelected(data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0);
+    });
   };
 
   function sendClientOpenFileMessage(fileName: string) {
-    const message: ClientMessage = {
-      type: "OpenFile",
-      payload: {
-        currentDir: currentDir,
-        fileName: fileName,
-      }
+    const request: ClientOpenFileMessage = {
+      currentDir: currentDir,
+      fileName: fileName,
     };
-    vscode.postMessage(message);
+    vscodeClient.sendRequest(uris.openFile, "POST", request, (response) => {});
   };
-
 
   function onClickElement(index: number) {
     const element = elementsList[index];
     switch (element.type) {
       case "Directory":
         sendClientGoToDirMessage(element.name);
-        setSelected(0);
         break;
       case "File":
         sendClientOpenFileMessage(element.name);
@@ -58,10 +75,10 @@ export const FilesList = () => {
 
   const onKeyPressEvent = (event: KeyboardEvent) => {
     if (event.code === "ArrowDown") {
-      elementsList ? setSelected(Math.min(selected + 1, elementsList.length)) : undefined;
+      elementsList ? setSelected((elementsList.length + selected + 1) % elementsList.length) : undefined;
     }
     if (event.code === "ArrowUp") {
-      elementsList ? setSelected(Math.max(selected - 1, 0)) : undefined;
+      elementsList ? setSelected((elementsList.length + selected - 1) % elementsList.length) : undefined;
     }
     if (event.code === "Enter") {
       onClickElement(selected);

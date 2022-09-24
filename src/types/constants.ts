@@ -1,0 +1,1 @@
+export const LVL_UP_DIR = "..";

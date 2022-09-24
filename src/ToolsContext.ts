@@ -1,5 +1,3 @@
-import { createContext } from "react";
-
 interface VsCode {
     postMessage(message: any): void;
 }

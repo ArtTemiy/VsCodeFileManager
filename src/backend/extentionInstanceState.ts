@@ -1,7 +1,4 @@
 import * as vscode from "vscode";
-
-export interface InstanceState {
-    currentDirectory: string;
-};
+import { InstanceState } from "./types/instanceState";
 
 export const instanceStateStorage = new Map<vscode.WebviewPanel, InstanceState>();

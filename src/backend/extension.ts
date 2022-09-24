@@ -1,11 +1,15 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { ServerMessage } from "./types/ServerMessage";
-import { ElementInfo, ElementType } from "./types/ElementInfo";
+import { DirContentDescription, ServerMessage } from "../types/ServerMessage";
+import { ElementInfo, ElementType } from "../types/ElementInfo";
 import * as os from 'os';
-import { ClientGoToDirMessage, ClientMessage, ClientOpenFileMessage } from "./types/ClientMessage";
-import { instanceStateStorage } from "./types/extentionInstanceState";
+import { ClientGoToDirMessage, ClientInitDirMessage, ClientMessage, ClientOpenFileMessage } from "../types/ClientMessage";
+import { InstanceState } from "./types/instanceState";
+import { instanceStateStorage } from "./extentionInstanceState";
+import { LVL_UP_DIR } from "../types/constants";
+import { Server } from "../vscode-api/server/server";
+import { uris } from "../constants";
 
 export function activate(context: vscode.ExtensionContext) {
 	const extensionUri = context.extensionUri;
@@ -23,6 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand(
 			'FileManager.openFileManager',
 			() => {
+				// Create webview
 				const manager = vscode.window.createWebviewPanel(
 					'fileManagerWindow',
 					'File Manager',
@@ -31,15 +36,50 @@ export function activate(context: vscode.ExtensionContext) {
 						enableScripts: true,
 					}
 				);
+
+				// Fill instance storage
+				const server = new Server(manager, context);
 				instanceStateStorage.set(manager, {
+					server: server,
 					currentDirectory: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : os.homedir(),
 				});
 
+				// Initialize methods of webview
 				manager.onDidDispose(() => {
 					console.log('disposed called');
-					
+					instanceStateStorage.delete(manager);
 				}, null, context.subscriptions);
 
+				// Helper functions
+				const getUpdateCurrentDirectoryMessage = () => {
+					const state = instanceStateStorage.get(manager);
+					return {
+						currentDir: state.currentDirectory,
+						elementsList: makeElementsList(state.currentDirectory),
+						prevDir: state.prevDir,
+					};
+				};
+
+				// Initialize server handlers
+				server.addHandler(uris.goToDir, "POST", (data: ClientGoToDirMessage) => {
+					instanceStateStorage.set(manager, {
+						...instanceStateStorage.get(manager),
+						currentDirectory: fs.realpathSync(path.join(data.currentDir, data.dirName)),
+						prevDir: data.dirName === LVL_UP_DIR ? path.basename(instanceStateStorage.get(manager).currentDirectory) : undefined,
+					});
+					return getUpdateCurrentDirectoryMessage();
+				});
+				server.addHandler(uris.initDir, "GET", (rawData: ClientInitDirMessage) => {
+					return getUpdateCurrentDirectoryMessage();
+				});
+				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage) => {	
+					const filePath = path.join(data.currentDir, data.fileName);
+					vscode.window.showTextDocument(vscode.Uri.file(filePath));
+					instanceStateStorage.get(manager).prevDir = data.fileName;
+				});
+				console.log("Handlers(2):", server.handlers);
+				
+				// Load html content
 				const indexJsPath = manager.webview.asWebviewUri(
 					vscode.Uri.joinPath(extensionUri, 'out', 'index.js')
 				);
@@ -48,50 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 				);
 				const htmlContent = getWebViewContent(indexJsPath, indexCssPath);
 				manager.webview.html = htmlContent;
-
-				console.log("View created");
-
-				const sendUpdateCurrentDirectoryMessage = () => {
-					const message = createServerUpdateDirectoryMessage(instanceStateStorage.get(manager).currentDirectory);
-					manager.webview.postMessage(message);
-				};
-
-				manager.webview.onDidReceiveMessage(
-					message => {
-						console.log("Extension received message", message);
-						
-						const data = message as ClientMessage;
-						switch (data.type) {
-							case "GoToDir":
-								(() => {
-									const payload = data.payload as ClientGoToDirMessage;
-									instanceStateStorage.set(manager, {
-										...instanceStateStorage.get(manager),
-										currentDirectory: fs.realpathSync(path.join(payload.currentDir, payload.dirName)),
-									});
-									sendUpdateCurrentDirectoryMessage();
-								})();
-								break;
-							case "InitDir":
-								(() => {
-									sendUpdateCurrentDirectoryMessage();
-								})();
-								break;
-							case "OpenFile":
-								(() => {
-									const payload = data.payload as ClientOpenFileMessage;
-									const filePath = path.join(payload.currentDir, payload.fileName);
-									vscode.window.showTextDocument(vscode.Uri.file(filePath));
-								})();
-								break;
-							default:
-								vscode.window.showErrorMessage(`Unknown message type: ${data.type}`);
-								break;
-						}
-					},
-					undefined,
-					context.subscriptions
-				);
+				console.log("View Created");
 			}
 		)
 	);
@@ -136,14 +133,3 @@ function makeElementsList(pathToDir: string) {
 		type: getElementType(path.join(pathToDir, elementName)),
 	}));
 }
-
-function createServerUpdateDirectoryMessage(pathToDir: string): ServerMessage {
-	return {
-		messageType: "UpdateCurrentDir",
-		payloadType: "DirContentDescription",
-		payload: {
-			currentDir: pathToDir,
-			elementsList: makeElementsList(pathToDir),
-		}
-	};
-};
