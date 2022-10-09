@@ -1,0 +1,16 @@
+.filesList {
+    display: flex;
+    height: 100%;
+    overflow: auto;
+    border: 2px darkgrey;
+}
+
+.filesList {
+    display: flex;
+    width: 50%;
+}
+
+.filesList-3 {
+    display: flex;
+    width: 33%;
+}

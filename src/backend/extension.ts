@@ -7,7 +7,7 @@ import * as os from 'os';
 import { ClientGoToDirMessage, ClientInitDirMessage, ClientMessage, ClientOpenFileMessage } from "../types/ClientMessage";
 import { InstanceState } from "./types/instanceState";
 import { instanceStateStorage } from "./extentionInstanceState";
-import { LVL_UP_DIR } from "../types/constants";
+import { LVL_UP_DIR } from "../constants";
 import { Server } from "../vscode-api/server/server";
 import { uris } from "../constants";
 
@@ -46,7 +46,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 				// Initialize methods of webview
 				manager.onDidDispose(() => {
-					console.log('disposed called');
 					instanceStateStorage.delete(manager);
 				}, null, context.subscriptions);
 
@@ -55,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 					const state = instanceStateStorage.get(manager);
 					return {
 						currentDir: state.currentDirectory,
-						elementsList: makeElementsList(state.currentDirectory),
+						elementsList: getElementsList(state.currentDirectory),
 						prevDir: state.prevDir,
 					};
 				};
@@ -69,7 +68,19 @@ export function activate(context: vscode.ExtensionContext) {
 					});
 					return getUpdateCurrentDirectoryMessage();
 				});
-				server.addHandler(uris.initDir, "GET", (rawData: ClientInitDirMessage) => {
+				server.addHandler(uris.getDirInfo, "GET", (data: ClientGoToDirMessage) => {
+					if (data.dirName === LVL_UP_DIR) {
+						return [];
+					}
+					const destPath = fs.realpathSync(path.join(data.currentDir, data.dirName));
+					const response: DirContentDescription = {
+						currentDir: destPath,
+						elementsList: getElementType(destPath) === "Directory" ? getElementsList(destPath) : [],
+						// elementsList: getElementsList(destPath),
+					};
+					return response;
+				});
+				server.addHandler(uris.initDir, "GET", (data: ClientInitDirMessage) => {
 					return getUpdateCurrentDirectoryMessage();
 				});
 				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage) => {	
@@ -77,7 +88,6 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.window.showTextDocument(vscode.Uri.file(filePath));
 					instanceStateStorage.get(manager).prevDir = data.fileName;
 				});
-				console.log("Handlers(2):", server.handlers);
 				
 				// Load html content
 				const indexJsPath = manager.webview.asWebviewUri(
@@ -104,7 +114,7 @@ function getWebViewContent(indexJsPath: vscode.Uri, indexCssPath: vscode.Uri) {
 			<link rel="stylesheet" href="${indexCssPath}">
 		</head>
 		<body>
-			<div id="root"></div>
+			<div class="content" id="root"></div>
 
 			<script type="module" src="${indexJsPath}"></script>
 		</body>
@@ -127,7 +137,7 @@ function getElementType(pathToElemetn: string): ElementType {
 	return "Unknown";
 }
 
-function makeElementsList(pathToDir: string) {
+function getElementsList(pathToDir: string) {
 	return ((pathToDir === "/" ? [] : ['..']).concat(fs.readdirSync(pathToDir))).map((elementName, index): ElementInfo => ({
 		name: elementName,
 		type: getElementType(path.join(pathToDir, elementName)),

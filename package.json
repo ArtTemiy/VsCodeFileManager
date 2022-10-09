@@ -57,6 +57,7 @@
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
     "@vscode/test-electron": "^1.6.1",
+    "classnames-ts": "^1.0.2",
     "eslint": "^8.13.0",
     "glob": "^7.1.6",
     "mocha": "^8.1.3",
