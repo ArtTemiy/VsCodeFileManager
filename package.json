@@ -18,11 +18,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "FileManager.hello",
-        "title": "Hello World!",
-        "category": "FileManager"
-      },
-      {
         "command": "FileManager.openFileManager",
         "title": "Open file manager",
         "category": "FileManager"
@@ -42,9 +37,7 @@
     "watch": "",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
-    "pretty": "prettier --write \"./src/*.{js,jsx,ts,tsx,json}\"" 
-
+    "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.5",
