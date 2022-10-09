@@ -37,6 +37,25 @@ export const FilesManager = () => {
         });
     }, []);
 
+    const updateNextList = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
+        console.log(nextElement);
+        const usingCurrentDir = customCurrentDir || currentDir;
+        
+        if (nextElement !== undefined && nextElement.type !== "Directory") {
+            setNextDirElementsList([]);
+        } else {
+            const request: ClientGoToDirMessage = {
+                currentDir: usingCurrentDir,
+                dirName: nextElement.name,
+            };
+            vscodeClient.sendRequest(uris.getDirInfo, "GET", request, (response: DirContentDescription) => {
+                console.log('Next els:', response.elementsList);
+                setNextDirElementsList(response.elementsList);
+            }
+            );
+        }
+    }, [elementsList, setNextDirElementsList, currentDir]);
+
     const sendClientGoToDirMessage = useCallback((dirName: string) => {
         const request: ClientGoToDirMessage = {
             currentDir: currentDir,
@@ -47,9 +66,11 @@ export const FilesManager = () => {
                 currentDir: data.currentDir,
                 elementsList: data.elementsList
             });
-            setSelected(data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0);
+            const selected = data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0;
+            setSelected(selected);
+            updateNextList(data.elementsList[selected], data.currentDir);
         });
-    }, [setSelected, currentDir]);
+    }, [setSelected, currentDir, updateNextList]);
 
     const sendClientOpenFileMessage = useCallback((fileName: string) => {
         const request: ClientOpenFileMessage = {
@@ -59,8 +80,7 @@ export const FilesManager = () => {
         vscodeClient.sendRequest(uris.openFile, "POST", request, (response) => { });
     }, [currentDir]);
 
-    const onClickElement = useCallback((index: number) => {
-        const element = elementsList[index];
+    const onClickElement = useCallback((element: ElementInfo) => {
         switch (element.type) {
             case "Directory":
                 sendClientGoToDirMessage(element.name);
@@ -73,22 +93,6 @@ export const FilesManager = () => {
                 break;
         }
     }, [sendClientGoToDirMessage, sendClientOpenFileMessage]);
-
-    const updateNextList = useCallback((index: number) => {
-        const nextElement = elementsList[index] as ElementInfo;
-        if (nextElement !== undefined && nextElement.type !== "Directory") {
-            setNextDirElementsList([]);
-        } else {
-            const request: ClientGoToDirMessage = {
-                currentDir: currentDir,
-                dirName: nextElement.name,
-            };
-            vscodeClient.sendRequest(uris.getDirInfo, "GET", request, (response: DirContentDescription) => {
-                setNextDirElementsList(response.elementsList);
-            }
-            );
-        }
-    }, [elementsList, setNextDirElementsList]);
 
     return (
         <>
