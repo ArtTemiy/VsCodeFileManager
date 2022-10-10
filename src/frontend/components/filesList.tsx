@@ -42,10 +42,12 @@ export const FilesList = ({elementsList, active}: Props) => {
 
   if (active !== undefined) {
     const onKeyPressEvent = (event: KeyboardEvent) => {
-      if (event.code === "ArrowDown") {        
+      if (event.code === "ArrowDown") {     
+        event.preventDefault();   
         filteredElementList && setSelectedWithUpdate((filteredElementList.length + selected + 1) % filteredElementList.length);
       }
       if (event.code === "ArrowUp") {
+        event.preventDefault();
         filteredElementList && setSelectedWithUpdate((filteredElementList.length + selected - 1) % filteredElementList.length);
       }
       if (event.code === "ArrowLeft") {
@@ -102,8 +104,10 @@ export const FilesList = ({elementsList, active}: Props) => {
             onInputChangeCallback(event.target.value);
         }}
         readOnly={!Boolean(active)}
+        disabled={!Boolean(active)}
         ref={inputRef}
       />
+      <hr></hr>
       <ul>
         {filesToDraw && filesToDraw.length > 0 && filesToDraw.map(
           (element, index) => {
