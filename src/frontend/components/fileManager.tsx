@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import classNames from "classnames-ts";
 
@@ -24,6 +24,7 @@ export const FilesManager = () => {
     });
     const [nextDirElementsList, setNextDirElementsList] = useState([]);
     const [selected, setSelected] = useState(0);
+    const inputRef = useRef(null);
     useEffect(() => {
         console.debug("use effect called");
 
@@ -35,6 +36,10 @@ export const FilesManager = () => {
             data.prevDir && setSelected(data.elementsList.findIndex(el => el.name === data.prevDir));
         });
     }, []);
+    useEffect(() => {
+        inputRef.current.focus();
+        inputRef.current.value = "";
+    }, [currentDir]);
 
     const updateNextList = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
         const usingCurrentDir = customCurrentDir || currentDir;
@@ -94,9 +99,22 @@ export const FilesManager = () => {
         }
     }, [sendClientGoToDirMessage, sendClientOpenFileMessage]);
 
+    const onFilterUpdateObj = {
+        func: (prefix: string) => {}
+    };
+
     return (
         <>
             {currentDir ? (<h1 className={classNames("currentDir")}>{currentDir}</h1>) : (<h1>Loading...</h1>)}
+            <input
+                    className={classNames()}
+                    type="text"
+                    placeholder="Find file..."
+                    onChange={(event) => {
+                        onFilterUpdateObj.func(event.target.value);
+                    }}
+                    ref={inputRef}
+                />
             <div
                 className={classNames("fileManager")}
             >
@@ -106,6 +124,7 @@ export const FilesManager = () => {
                     active={({
                         onClickElement: onClickElement,
                         updateNextList: updateNextList,
+                        onFilterUpdateObj: onFilterUpdateObj,
                         selected: selected
                     })}
                 />

@@ -20,6 +20,7 @@ interface Props {
   active?: {
     onClickElement: (element: ElementInfo) => void;
     updateNextList: (nextElement: ElementInfo) => void;
+    onFilterUpdateObj: { func: (prefix: string) => void };
     selected: number;
   }
 }
@@ -34,7 +35,6 @@ export const FilesList = ({elementsList, active}: Props) => {
     active.updateNextList(usingElementsList[index]);
     setSelected(index);
   }, [setSelected, filteredElementList]);
-  const inputRef = useRef(null);
 
   function onHoverElement(index) {
     setSelectedWithUpdate(index);
@@ -63,11 +63,17 @@ export const FilesList = ({elementsList, active}: Props) => {
 
     useEffect(() => {
       window.addEventListener("keydown", onKeyPressEvent);
-      inputRef.current.focus();
       return () => {
         window.removeEventListener('keydown', onKeyPressEvent);
       };
     });
+
+    const onInputChangeCallback = (prefix: string) => {
+      const newElementsList = elementsList.filter((value: ElementInfo) => value.name.startsWith(prefix));
+      setFilteredElementList(newElementsList);
+      setSelectedWithUpdate(0, newElementsList);
+    };
+    active.onFilterUpdateObj.func = onInputChangeCallback;
   }
 
   const getElementProps = (element : ElementInfo, index: number) => {
@@ -81,28 +87,10 @@ export const FilesList = ({elementsList, active}: Props) => {
     } : {};
   };
 
-  const onInputChangeCallback = (prefix: string) => {
-    const newElementsList = elementsList.filter((value: ElementInfo) => value.name.startsWith(prefix));
-    setFilteredElementList(newElementsList);
-    setSelectedWithUpdate(0, newElementsList);
-  };
-
-  // TODO: BUG?
   const filesToDraw = active ? filteredElementList : elementsList;
   
   return (
     <div className={classNames("filesList", "col-2")}>
-      <input
-        className={classNames()}
-        type="text"
-        placeholder={active ? "Find file..." : ""}
-        onChange={(event) => {
-            onInputChangeCallback(event.target.value);
-        }}
-        readOnly={!Boolean(active)}
-        disabled={!Boolean(active)}
-        ref={inputRef}
-      />
       <ul>
         {filesToDraw && filesToDraw.length > 0 && filesToDraw.map(
           (element, index) => {
