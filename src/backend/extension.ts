@@ -11,6 +11,8 @@ import { LVL_UP_DIR } from "../constants";
 import { Server } from "../vscode-api/server/server";
 import { uris } from "../constants";
 
+const ADDITIONAL_LINKS_FILE_PATH = "";
+
 export function activate(context: vscode.ExtensionContext) {
 	const extensionUri = context.extensionUri;
 

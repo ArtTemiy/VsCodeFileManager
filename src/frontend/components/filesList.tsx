@@ -63,9 +63,6 @@ export const FilesList = ({elementsList, active}: Props) => {
 
     useEffect(() => {
       window.addEventListener("keydown", onKeyPressEvent);
-      // console.log(elementsList, filteredElementList[selected], selected, filteredElementList, Boolean(filteredElementList));
-      
-      // filteredElementList && filteredElementList.length > 0 && active.updateNextList(filteredElementList[selected]);
       inputRef.current.focus();
       return () => {
         window.removeEventListener('keydown', onKeyPressEvent);
@@ -85,7 +82,6 @@ export const FilesList = ({elementsList, active}: Props) => {
   };
 
   const onInputChangeCallback = (prefix: string) => {
-    console.log(`onInputChange called ${active}`);
     const newElementsList = elementsList.filter((value: ElementInfo) => value.name.startsWith(prefix));
     setFilteredElementList(newElementsList);
     setSelectedWithUpdate(0, newElementsList);
@@ -107,7 +103,6 @@ export const FilesList = ({elementsList, active}: Props) => {
         disabled={!Boolean(active)}
         ref={inputRef}
       />
-      <hr></hr>
       <ul>
         {filesToDraw && filesToDraw.length > 0 && filesToDraw.map(
           (element, index) => {

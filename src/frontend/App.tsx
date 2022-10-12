@@ -13,6 +13,9 @@ import { FilesManager } from "./components/fileManager";
 export const App = () => {
   return (
     <>
+      <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Roboto+Mono:wght@300&display=swap');
+      </style>
       <FilesManager/>
     </>
   );

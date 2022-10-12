@@ -15,7 +15,6 @@ import { DirContentDescription } from "../../types/ServerMessage";
 import { ClientInitDirMessage } from "../../types/ClientMessage";
 
 import { FilesList } from "./filesList";
-import path from "path";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FilesManager = () => {
@@ -38,10 +37,12 @@ export const FilesManager = () => {
     }, []);
 
     const updateNextList = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
-        console.log(nextElement);
         const usingCurrentDir = customCurrentDir || currentDir;
-        
-        if (nextElement !== undefined && nextElement.type !== "Directory") {
+        if (nextElement === undefined) {
+            setNextDirElementsList([]);
+            return;
+        }
+        if (nextElement.type !== "Directory") {
             setNextDirElementsList([]);
         } else {
             const request: ClientGoToDirMessage = {
@@ -49,7 +50,6 @@ export const FilesManager = () => {
                 dirName: nextElement.name,
             };
             vscodeClient.sendRequest(uris.getDirInfo, "GET", request, (response: DirContentDescription) => {
-                console.log('Next els:', response.elementsList);
                 setNextDirElementsList(response.elementsList);
             }
             );
@@ -96,7 +96,7 @@ export const FilesManager = () => {
 
     return (
         <>
-            {currentDir ? (<h1>{currentDir}</h1>) : (<h1>Loading...</h1>)}
+            {currentDir ? (<h1 className={classNames("currentDir")}>{currentDir}</h1>) : (<h1>Loading...</h1>)}
             <div
                 className={classNames("fileManager")}
             >

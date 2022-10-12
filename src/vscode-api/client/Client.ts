@@ -12,7 +12,7 @@ class Client {
             const response = event.data as Response;
             const callback = this.requests.get(response.id);
             this.requests.delete(response.id);
-            callback(response.payload);
+            callback && callback(response.payload);
         });
     }
 
