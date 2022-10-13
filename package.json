@@ -2,7 +2,7 @@
   "name": "FileManager",
   "publisher": "ArtTemiy",
   "description": "Simple UI file navigator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "license": "MIT",
   "repository": "git@github.com:ArtTemiy/FileManagerVsCodeExtension.git",
