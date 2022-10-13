@@ -1,10 +1,12 @@
 {
   "name": "FileManager",
-  "publisher": "vscode-samples",
-  "description": "Uri Handler Sample",
+  "publisher": "ArtTemiy",
+  "description": "Simple UI file navigator",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
+  "repository": "git@github.com:ArtTemiy/FileManagerVsCodeExtension.git",
+  "icon": "./media/icon.png",
   "engines": {
     "vscode": "^1.46.0"
   },
