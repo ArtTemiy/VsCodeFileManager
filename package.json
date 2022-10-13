@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "repository": "git@github.com:ArtTemiy/FileManagerVsCodeExtension.git",
-  "icon": "./media/icon.png",
+  "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.46.0"
   },
