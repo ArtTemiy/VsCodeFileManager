@@ -19,7 +19,7 @@ interface Props {
   elementsList: ElementInfo[];
   active?: {
     onClickElement: (element: ElementInfo) => void;
-    updateNextList: (nextElement: ElementInfo) => void;
+    updateNextElement: (nextElement: ElementInfo) => void;
     onFilterUpdateObj: { func: (prefix: string) => void };
     selected: number;
   }
@@ -32,7 +32,7 @@ export const FilesList = ({elementsList, active}: Props) => {
 
   const setSelectedWithUpdate = useCallback((index: number, newElementsList?: ElementInfo[]) => {
     const usingElementsList = newElementsList || filteredElementList;
-    active.updateNextList(usingElementsList[index]);
+    active.updateNextElement(usingElementsList[index]);
     setSelected(index);
   }, [setSelected, filteredElementList]);
 

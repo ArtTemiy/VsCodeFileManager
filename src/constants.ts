@@ -3,6 +3,7 @@ export const uris = {
     getDirInfo: "getDirInfo",
     initDir: "initDir",
     openFile: "openFile",
+    elementInfo: "elementInfo",
 };
 
 export const LVL_UP_DIR = "..";

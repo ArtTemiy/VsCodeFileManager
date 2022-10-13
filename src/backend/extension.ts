@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { DirContentDescription, ServerMessage } from "../types/ServerMessage";
+import { DirContentDescription, ElementContentInfo, ServerMessage } from "../types/ServerMessage";
 import { ElementInfo, ElementType } from "../types/ElementInfo";
 import * as os from 'os';
-import { ClientGoToDirMessage, ClientInitDirMessage, ClientMessage, ClientOpenFileMessage } from "../types/ClientMessage";
-import { InstanceState } from "./types/instanceState";
+import { ClientElementInfoMessage, ClientGoToDirMessage, ClientInitDirMessage, ClientOpenFileMessage } from "../types/ClientMessage";
 import { instanceStateStorage } from "./extentionInstanceState";
 import { LVL_UP_DIR } from "../constants";
 import { Server } from "../vscode-api/server/server";
@@ -78,19 +77,46 @@ export function activate(context: vscode.ExtensionContext) {
 					const response: DirContentDescription = {
 						currentDir: destPath,
 						elementsList: getElementType(destPath) === "Directory" ? getElementsList(destPath) : [],
-						// elementsList: getElementsList(destPath),
 					};
+					return response;
+				});
+				server.addHandler(uris.elementInfo, "GET", (data: ClientElementInfoMessage) => {
+					const pathToElement = fs.realpathSync(path.join(data.currentDir, data.elementName));
+					let response: ElementContentInfo = {
+						type: "File",
+						content: {
+							data: "",
+						},
+					};
+					if (fs.lstatSync(pathToElement).isFile()) {
+						response = {
+							type: "File",
+							content: {
+								data: fs.readFileSync(pathToElement).toString(),
+							}
+						};
+					} else if (fs.lstatSync(pathToElement).isDirectory()) {
+						response = {
+							type: "Directory",
+							content: {
+								elementsList: getElementsList(pathToElement),
+							}
+						};
+					} else {
+						console.warn(`Unimplemented behavoiur for file type of address ${pathToElement}`);
+					}
+
 					return response;
 				});
 				server.addHandler(uris.initDir, "GET", (data: ClientInitDirMessage) => {
 					return getUpdateCurrentDirectoryMessage();
 				});
-				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage) => {	
+				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage) => {
 					const filePath = path.join(data.currentDir, data.fileName);
 					vscode.window.showTextDocument(vscode.Uri.file(filePath));
 					instanceStateStorage.get(manager).prevDir = data.fileName;
 				});
-				
+
 				// Load html content
 				const indexJsPath = manager.webview.asWebviewUri(
 					vscode.Uri.joinPath(extensionUri, 'out', 'index.js')
@@ -100,13 +126,12 @@ export function activate(context: vscode.ExtensionContext) {
 				);
 				const htmlContent = getWebViewContent(indexJsPath, indexCssPath);
 				manager.webview.html = htmlContent;
-				console.log("View Created");
 			}
 		)
 	);
 }
 
-export function deactivate() {}
+export function deactivate() { }
 
 function getWebViewContent(indexJsPath: vscode.Uri, indexCssPath: vscode.Uri) {
 	return `
@@ -123,8 +148,8 @@ function getWebViewContent(indexJsPath: vscode.Uri, indexCssPath: vscode.Uri) {
 	</html>`;
 }
 
-function getElementType(pathToElemetn: string): ElementType {
-	const stats = fs.lstatSync(pathToElemetn);
+function getElementType(pathToElement: string): ElementType {
+	const stats = fs.lstatSync(pathToElement);
 	if (stats.isDirectory()) {
 		return "Directory";
 	}
@@ -134,8 +159,8 @@ function getElementType(pathToElemetn: string): ElementType {
 	if (stats.isSymbolicLink()) {
 		return "Symlink";
 	}
-	console.warn(`Unknown type of element ${pathToElemetn}`);
-	
+	console.warn(`Unknown type of element ${pathToElement}`);
+
 	return "Unknown";
 }
 
