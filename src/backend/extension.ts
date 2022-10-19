@@ -88,7 +88,16 @@ export function activate(context: vscode.ExtensionContext) {
 							data: "",
 						},
 					};
-					if (fs.lstatSync(pathToElement).isFile()) {
+					console.log(data.elementName);
+
+					if (data.elementName === LVL_UP_DIR) {
+						response = {
+							type: "Directory",
+							content: {
+								elementsList: [],
+							}
+						};
+					} else if (fs.lstatSync(pathToElement).isFile()) {
 						response = {
 							type: "File",
 							content: {

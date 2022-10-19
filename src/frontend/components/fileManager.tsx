@@ -1,18 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useRef, useState } from "react";
 import classNames from "classnames-ts";
 
-import { ClientElementInfoMessage, ClientGoToDirMessage, ClientMessage, ClientOpenFileMessage } from "../../types/ClientMessage";
+import { ClientElementInfoMessage, ClientGoToDirMessage, ClientOpenFileMessage } from "../../types/ClientMessage";
 import { ElementInfo } from "../../types/ElementInfo";
-import { setLoadingState } from "../storage/directorySlice";
 
-import { selecorDataLoadingState, selectorCurrentDirAndElements, selectorDataLoaded } from "../storage/selectors";
-import { getElementStyle } from "../utils/stylesSelectors";
-import { vscode } from "../../ToolsContext";
 import { vscodeClient } from "../../vscode-api/client/client";
 import { uris } from "../../constants";
 import { DirContentDescription, ElementContentInfo } from "../../types/ServerMessage";
-import { ClientInitDirMessage } from "../../types/ClientMessage";
 
 import { FilesList } from "./filesList";
 import { Preview } from "./preview";
@@ -30,25 +24,9 @@ export const FilesManager = () => {
         currentDir: undefined,
         elementsList: []
     });
-    // const [nextDirElementsList, setNextDirElementsList] = useState([]);
     const [nextElementInfo, setNextElementInfo] = useState(defaultNextElementInfo);
     const [selected, setSelected] = useState(0);
     const inputRef = useRef(null);
-    useEffect(() => {
-        console.debug("use effect called");
-
-        vscodeClient.sendRequest(uris.initDir, "POST", {}, (data: DirContentDescription) => {
-            setDirInfo({
-                currentDir: data.currentDir,
-                elementsList: data.elementsList
-            });
-            data.prevDir && setSelected(data.elementsList.findIndex(el => el.name === data.prevDir));
-        });
-    }, []);
-    useEffect(() => {
-        inputRef.current.focus();
-        inputRef.current.value = "";
-    }, [currentDir]);
 
     const updateNextElement = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
         const usingCurrentDir = customCurrentDir || currentDir;
@@ -58,8 +36,7 @@ export const FilesManager = () => {
                 content: {
                     data: "",
                 }
-            })
-            // setNextDirElementsList([]);
+            });
             return;
         }
         const request: ClientElementInfoMessage = {
@@ -69,18 +46,6 @@ export const FilesManager = () => {
         vscodeClient.sendRequest(uris.elementInfo, "GET", request, (response: ElementContentInfo) => {
             setNextElementInfo(response);
         });
-        // if (nextElement.type === "Directory") {
-        //     setNextDirElementsList([]);
-        // } else {
-        //     const request: ClientGoToDirMessage = {
-        //         currentDir: usingCurrentDir,
-        //         dirName: nextElement.name,
-        //     };
-        //     vscodeClient.sendRequest(uris.getDirInfo, "GET", request, (response: DirContentDescription) => {
-        //         setNextDirElementsList(response.elementsList);
-        //     }
-        //     );
-        // }
     }, [elementsList, setNextElementInfo, currentDir]);
 
     const sendClientGoToDirMessage = useCallback((dirName: string) => {
@@ -121,6 +86,24 @@ export const FilesManager = () => {
         }
     }, [sendClientGoToDirMessage, sendClientOpenFileMessage]);
 
+    useEffect(() => {
+        console.debug("use effect called");
+
+        vscodeClient.sendRequest(uris.initDir, "POST", {}, (data: DirContentDescription) => {
+            setDirInfo({
+                currentDir: data.currentDir,
+                elementsList: data.elementsList
+            });
+            const selectedIndex = data.elementsList.findIndex(el => el.name === data.prevDir);
+            data.prevDir && setSelected(selectedIndex);
+            data.prevDir && updateNextElement(data.elementsList[selectedIndex], data.currentDir);
+        });
+    }, []);
+    useEffect(() => {
+        inputRef.current.focus();
+        inputRef.current.value = "";
+    }, [currentDir]);
+
     const onFilterUpdateObj = {
         func: (prefix: string) => {}
     };
@@ -150,11 +133,6 @@ export const FilesManager = () => {
                         selected: selected
                     })}
                 />
-                {/* <FilesList
-                    key={'_' + currentDir}
-                    elementsList={nextDirElementsList}
-                    active={undefined}
-                /> */}
                 <Preview
                     {...nextElementInfo}
                 />

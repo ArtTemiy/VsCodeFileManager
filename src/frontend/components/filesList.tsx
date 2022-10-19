@@ -1,17 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { ClientGoToDirMessage, ClientMessage, ClientOpenFileMessage } from "../../types/ClientMessage";
 import { ElementInfo } from "../../types/ElementInfo";
-import { setLoadingState } from "../storage/directorySlice";
 
-import { selecorDataLoadingState, selectorCurrentDirAndElements, selectorDataLoaded } from "../storage/selectors";
 import { getElementStyle } from "../utils/stylesSelectors";
-import { vscode } from "../../ToolsContext";
-import { vscodeClient } from "../../vscode-api/client/client";
-import { LVL_UP_DIR, uris } from "../../constants";
-import { DirContentDescription } from "../../types/ServerMessage";
-import { ClientInitDirMessage } from "../../types/ClientMessage";
+import { LVL_UP_DIR } from "../../constants";
 
 import classNames from "classnames-ts";
 

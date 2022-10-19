@@ -21,6 +21,8 @@ export class Server {
     }
 
     processEequest(request: Request) : Response {
+        console.log('Request:', request);
+        
         const handler = this.handlers.get(request.handle);
         if (handler === undefined) {
             console.error(`unknown handler ${request.handle}`, request, this.handlers);
@@ -29,9 +31,12 @@ export class Server {
                 payload: undefined
             };
         }
+        const respone = handler(request.payload);
+        console.log('Response:', respone);
+        
         return {
             id: request.id,
-            payload: handler(request.payload),
+            payload: respone,
         };
     }
 

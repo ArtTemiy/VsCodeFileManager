@@ -8,6 +8,7 @@ import { DirContentDescription } from "../types/ServerMessage";
 import { useDispatch, useSelector } from "react-redux";
 import { selectorDataLoaded } from "../frontend/storage/selectors";
 import { FilesManager } from "./components/fileManager";
+import React from 'react';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const App = () => {
