@@ -6,27 +6,26 @@ import { getElementStyle } from "../utils/stylesSelectors";
 import { LVL_UP_DIR } from "../../constants";
 
 import classNames from "classnames-ts";
+import { getIcon } from "../icons/icons";
 
 interface Props {
   elementsList: ElementInfo[];
   active?: {
     onClickElement: (element: ElementInfo) => void;
     updateNextElement: (nextElement: ElementInfo) => void;
-    onFilterUpdateObj: { func: (prefix: string) => void };
     selected: number;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FilesList = ({elementsList, active}: Props) => {
-  const [selected, setSelected] = useState(active ? active.selected : undefined);
-  const [filteredElementList, setFilteredElementList] = useState(elementsList);
+  const [selected, setSelected] = useState<number | undefined>(active?.selected);
 
   const setSelectedWithUpdate = useCallback((index: number, newElementsList?: ElementInfo[]) => {
-    const usingElementsList = newElementsList || filteredElementList;
+    const usingElementsList = newElementsList || elementsList;
     active.updateNextElement(usingElementsList[index]);
     setSelected(index);
-  }, [setSelected, filteredElementList]);
+  }, [setSelected, elementsList]);
 
   function onHoverElement(index) {
     setSelectedWithUpdate(index);
@@ -36,20 +35,20 @@ export const FilesList = ({elementsList, active}: Props) => {
     const onKeyPressEvent = (event: KeyboardEvent) => {
       if (event.code === "ArrowDown") {     
         event.preventDefault();   
-        filteredElementList && setSelectedWithUpdate((filteredElementList.length + selected + 1) % filteredElementList.length);
+        elementsList && setSelectedWithUpdate((elementsList.length + selected + 1) % elementsList.length);
       }
       if (event.code === "ArrowUp") {
         event.preventDefault();
-        filteredElementList && setSelectedWithUpdate((filteredElementList.length + selected - 1) % filteredElementList.length);
+        elementsList && setSelectedWithUpdate((elementsList.length + selected - 1) % elementsList.length);
       }
       if (event.code === "ArrowLeft") {
-        if (filteredElementList[0].name === LVL_UP_DIR) {
-          active.onClickElement(filteredElementList[0]);
+        if (elementsList[0].name === LVL_UP_DIR) {
+          active.onClickElement(elementsList[0]);
         }
       }
-      if (event.code === "ArrowRight" && filteredElementList[selected].name !== LVL_UP_DIR ||
+      if (event.code === "ArrowRight" && elementsList[selected].name !== LVL_UP_DIR ||
           event.code === "Enter") {
-        active.onClickElement(filteredElementList[selected]);
+        active.onClickElement(elementsList[selected]);
       }
     };
 
@@ -59,13 +58,9 @@ export const FilesList = ({elementsList, active}: Props) => {
         window.removeEventListener('keydown', onKeyPressEvent);
       };
     });
-
-    const onInputChangeCallback = (prefix: string) => {
-      const newElementsList = elementsList.filter((value: ElementInfo) => value.name.startsWith(prefix));
-      setFilteredElementList(newElementsList);
-      setSelectedWithUpdate(0, newElementsList);
-    };
-    active.onFilterUpdateObj.func = onInputChangeCallback;
+    useEffect(() => {
+      setSelected(0);
+    }, [elementsList]);
   }
 
   const getElementProps = (element : ElementInfo, index: number) => {
@@ -78,13 +73,11 @@ export const FilesList = ({elementsList, active}: Props) => {
       },
     } : {};
   };
-
-  const filesToDraw = active ? filteredElementList : elementsList;
   
   return (
     <div className={classNames("filesList", "col-2")}>
       <ul>
-        {filesToDraw && filesToDraw.length > 0 && filesToDraw.map(
+        {elementsList && elementsList.length > 0 && elementsList.map(
           (element, index) => {
             const className = getElementStyle(
               element,
@@ -96,7 +89,7 @@ export const FilesList = ({elementsList, active}: Props) => {
                 key={element.name}
                 className={className}
                 {...getElementProps(element, index)}
-              >{element.name}</li>;
+              >{getIcon(element.type)} {element.name}</li>;
             }
         )}
       </ul>

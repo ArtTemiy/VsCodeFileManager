@@ -11,21 +11,26 @@ import { DirContentDescription, ElementContentInfo } from "../../types/ServerMes
 import { FilesList } from "./filesList";
 import { Preview } from "./preview";
 
-const defaultNextElementInfo: ElementContentInfo = {
-    type: "Directory",
-    content: {
-        elementsList: [],
-    }
-};
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FilesManager = () => {
-    const [{ currentDir, elementsList }, setDirInfo] = useState({
+    const [dirInfo, setDirInfo] = useState<{
+        currentDir: string,
+        elementsList: ElementInfo[],
+        filteredElementList: ElementInfo[],
+    }>({
         currentDir: undefined,
-        elementsList: []
+        elementsList: [],
+        filteredElementList: [],
     });
-    const [nextElementInfo, setNextElementInfo] = useState(defaultNextElementInfo);
-    const [selected, setSelected] = useState(0);
+    const { currentDir, elementsList, filteredElementList } = dirInfo;
+    const [nextElementInfo, setNextElementInfo] = useState<ElementContentInfo>({
+        type: "Directory",
+        content: {
+            elementsList: [],
+        }
+    });
+    const [selected, setSelected] = useState<number>(0);
     const inputRef = useRef(null);
 
     const updateNextElement = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
@@ -56,7 +61,8 @@ export const FilesManager = () => {
         vscodeClient.sendRequest(uris.goToDir, "POST", request, (data: DirContentDescription) => {
             setDirInfo({
                 currentDir: data.currentDir,
-                elementsList: data.elementsList
+                elementsList: data.elementsList,
+                filteredElementList: data.elementsList,
             });
             const selected = data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0;
             setSelected(selected);
@@ -92,7 +98,8 @@ export const FilesManager = () => {
         vscodeClient.sendRequest(uris.initDir, "POST", {}, (data: DirContentDescription) => {
             setDirInfo({
                 currentDir: data.currentDir,
-                elementsList: data.elementsList
+                elementsList: data.elementsList,
+                filteredElementList: data.elementsList,
             });
             const selectedIndex = data.elementsList.findIndex(el => el.name === data.prevDir);
             data.prevDir && setSelected(selectedIndex);
@@ -107,7 +114,16 @@ export const FilesManager = () => {
     const onFilterUpdateObj = {
         func: (prefix: string) => {}
     };
-
+    const onFilterUpdate = useCallback((prefix: string) => {
+        const newFilteredElementList = elementsList.filter((value: ElementInfo) => value.name.toLowerCase().startsWith(prefix.toLowerCase()));
+        console.log(prefix, newFilteredElementList);
+        setDirInfo({
+            ...dirInfo,
+            filteredElementList: newFilteredElementList,
+        });
+        setSelected(0);
+    }, [elementsList, setSelected, setDirInfo, dirInfo]);
+    
     return (
         <>
             {currentDir ? (<h1 className={classNames("currentDir")}>{currentDir}</h1>) : (<h1>Loading...</h1>)}
@@ -116,7 +132,7 @@ export const FilesManager = () => {
                     type="text"
                     placeholder="Find file..."
                     onChange={(event) => {
-                        onFilterUpdateObj.func(event.target.value);
+                        onFilterUpdate(event.target.value);
                     }}
                     ref={inputRef}
                 />
@@ -125,13 +141,12 @@ export const FilesManager = () => {
             >
                 <FilesList
                     key={currentDir}
-                    elementsList={elementsList}
-                    active={({
+                    elementsList={filteredElementList}
+                    active={{
                         onClickElement: onClickElement,
                         updateNextElement: updateNextElement,
-                        onFilterUpdateObj: onFilterUpdateObj,
                         selected: selected
-                    })}
+                    }}
                 />
                 <Preview
                     {...nextElementInfo}

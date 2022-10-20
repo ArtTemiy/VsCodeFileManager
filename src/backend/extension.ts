@@ -88,7 +88,6 @@ export function activate(context: vscode.ExtensionContext) {
 							data: "",
 						},
 					};
-					console.log(data.elementName);
 
 					if (data.elementName === LVL_UP_DIR) {
 						response = {
@@ -133,7 +132,10 @@ export function activate(context: vscode.ExtensionContext) {
 				const indexCssPath = manager.webview.asWebviewUri(
 					vscode.Uri.joinPath(extensionUri, 'css', 'index.css')
 				);
-				const htmlContent = getWebViewContent(indexJsPath, indexCssPath);
+				const iconsCssPath = manager.webview.asWebviewUri(
+					vscode.Uri.joinPath(extensionUri, 'node_modules', '@vscode/codicons', 'dist', 'codicon.css')
+				);
+				const htmlContent = getWebViewContent(indexJsPath, indexCssPath, iconsCssPath);
 				manager.webview.html = htmlContent;
 			}
 		)
@@ -142,12 +144,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() { }
 
-function getWebViewContent(indexJsPath: vscode.Uri, indexCssPath: vscode.Uri) {
+function getWebViewContent(indexJsPath: vscode.Uri, indexCssPath: vscode.Uri, iconsCssPath: vscode.Uri) {
 	return `
 	<html>
 		<head>
 			<title>File Manager</title>
 			<link rel="stylesheet" href="${indexCssPath}">
+			<link rel="stylesheet" href="${iconsCssPath}">
 		</head>
 		<body>
 			<div class="content" id="root"></div>
