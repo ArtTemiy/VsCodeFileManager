@@ -15,7 +15,7 @@
     "system"
   ],
   "publisher": "ArtTemiy",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "repository": "git@github.com:ArtTemiy/FileManagerVsCodeExtension.git",
