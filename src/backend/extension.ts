@@ -4,7 +4,7 @@ import * as path from "path";
 import { DirContentDescription, ElementContentInfo, ServerMessage } from "../types/ServerMessage";
 import { ElementInfo, ElementType } from "../types/ElementInfo";
 import * as os from 'os';
-import { ClientElementInfoMessage, ClientGoToDirMessage, ClientInitDirMessage, ClientOpenFileMessage } from "../types/ClientMessage";
+import { ClientElementInfoMessage, ClientGoToDirMessage, ClientInitDirMessage, ClientOpenFileMessage, ClientResolveSymlinkType } from "../types/ClientMessage";
 import { instanceStateStorage } from "./extentionInstanceState";
 import { LVL_UP_DIR } from "../constants";
 import { Server } from "../vscode-api/server/server";
@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}, null, context.subscriptions);
 
 				// Helper functions
-				const getUpdateCurrentDirectoryMessage = () => {
+				const getUpdateCurrentDirectoryMessage = (): DirContentDescription => {
 					const state = instanceStateStorage.get(manager);
 					return {
 						currentDir: state.currentDirectory,
@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 				};
 
 				// Initialize server handlers
-				server.addHandler(uris.goToDir, "POST", (data: ClientGoToDirMessage) => {
+				server.addHandler(uris.goToDir, "POST", (data: ClientGoToDirMessage): DirContentDescription => {
 					instanceStateStorage.set(manager, {
 						...instanceStateStorage.get(manager),
 						currentDirectory: fs.realpathSync(path.join(data.currentDir, data.dirName)),
@@ -80,31 +80,35 @@ export function activate(context: vscode.ExtensionContext) {
 					};
 					return response;
 				});
-				server.addHandler(uris.elementInfo, "GET", (data: ClientElementInfoMessage) => {
+				server.addHandler(uris.elementInfo, "GET", (data: ClientElementInfoMessage): ElementContentInfo => {
 					const pathToElement = fs.realpathSync(path.join(data.currentDir, data.elementName));
-					let response: ElementContentInfo = {
-						type: "File",
-						content: {
-							data: "",
-						},
-					};
 
 					if (data.elementName === LVL_UP_DIR) {
-						response = {
+						return {
 							type: "Directory",
 							content: {
 								elementsList: [],
 							}
 						};
 					} else if (fs.lstatSync(pathToElement).isFile()) {
-						response = {
-							type: "File",
-							content: {
-								data: fs.readFileSync(pathToElement).toString(),
-							}
-						};
+						try {
+							return {
+								type: "File",
+								content: {
+									data: fs.readFileSync(pathToElement).toString(),
+								}
+							};
+						} catch (error) {
+							console.error('Error while reading file', error);
+							return {
+								type: "File",
+								content: {
+									data: ""
+								}
+							};
+						}
 					} else if (fs.lstatSync(pathToElement).isDirectory()) {
-						response = {
+						return {
 							type: "Directory",
 							content: {
 								elementsList: getElementsList(pathToElement),
@@ -112,17 +116,32 @@ export function activate(context: vscode.ExtensionContext) {
 						};
 					} else {
 						console.warn(`Unimplemented behavoiur for file type of address ${pathToElement}`);
+						return {
+							type: "File",
+							content: {
+								data: "",
+							}
+						};
 					}
-
-					return response;
 				});
-				server.addHandler(uris.initDir, "GET", (data: ClientInitDirMessage) => {
+				server.addHandler(uris.initDir, "GET", (data: ClientInitDirMessage): DirContentDescription => {
 					return getUpdateCurrentDirectoryMessage();
 				});
-				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage) => {
+				server.addHandler(uris.openFile, "POST", (data: ClientOpenFileMessage): null => {
 					const filePath = path.join(data.currentDir, data.fileName);
 					vscode.window.showTextDocument(vscode.Uri.file(filePath));
 					instanceStateStorage.get(manager).prevDir = data.fileName;
+					return null;
+				});
+				server.addHandler(uris.resolveSymlinkType, "GET", (data: ClientResolveSymlinkType): ElementType => {
+					const filePath = fs.realpathSync(path.join(data.currentDir, data.fileName));
+					if (fs.lstatSync(filePath).isDirectory()) {
+						return "Directory";
+					}
+					if (fs.lstatSync(filePath).isFile()) {
+						return "File";
+					}
+					return "Unknown";
 				});
 
 				// Load html content

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import classNames from "classnames-ts";
 
-import { ClientElementInfoMessage, ClientGoToDirMessage, ClientOpenFileMessage } from "../../types/ClientMessage";
-import { ElementInfo } from "../../types/ElementInfo";
+import { ClientElementInfoMessage, ClientGoToDirMessage, ClientOpenFileMessage, ClientResolveSymlinkType } from "../../types/ClientMessage";
+import { ElementInfo, ElementType } from "../../types/ElementInfo";
 
 import { vscodeClient } from "../../vscode-api/client/client";
 import { uris } from "../../constants";
@@ -75,7 +75,27 @@ export const FilesManager = () => {
             currentDir: currentDir,
             fileName: fileName,
         };
-        vscodeClient.sendRequest(uris.openFile, "POST", request, (response) => { });
+        vscodeClient.sendRequest(uris.openFile, "POST", request, (response: any) => { });
+    }, [currentDir]);
+
+    const processSymlink = useCallback((fileName: string) => {
+        const request: ClientResolveSymlinkType = {
+            currentDir: currentDir,
+            fileName: fileName,
+        };
+        vscodeClient.sendRequest(uris.resolveSymlinkType, "GET", request, (response: ElementType) => {
+            switch (response) {
+                case "Directory":
+                    sendClientGoToDirMessage(fileName);
+                    break;
+                case "File":
+                    sendClientOpenFileMessage(fileName);
+                    break;
+                default:
+                    console.error("Could't resolve symlink for file", {fileName, currentDir, response});
+                    break;
+            }
+        });
     }, [currentDir]);
 
     const onClickElement = useCallback((element: ElementInfo) => {
@@ -86,6 +106,8 @@ export const FilesManager = () => {
             case "File":
                 sendClientOpenFileMessage(element.name);
                 break;
+            case "Symlink":
+                processSymlink(element.name);
             default:
                 console.error(`Unimplemented behaviour for element type ${element.type}`);
                 break;

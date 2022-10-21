@@ -12,6 +12,11 @@ export interface ClientOpenFileMessage {
     fileName: string;
 };
 
+export interface ClientResolveSymlinkType {
+    currentDir: string;
+    fileName: string;
+};
+
 export interface ClientMessage {
     type: ClientMessageType;
     payload: null | ClientInitDirMessage | ClientGoToDirMessage | ClientOpenFileMessage;
