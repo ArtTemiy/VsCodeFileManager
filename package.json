@@ -1,7 +1,12 @@
 {
-  "name": "File Manager",
-  "publisher": "ArtTemiy",
+  "name": "FileManager",
+  "displayName": "Vscode File Manager",
   "description": "Simple UI file navigator",
+  "categories": [
+    "Other"
+  ],
+  "keywords": ["vscode", "file", "files", "manager", "filemanager", "filesystem", "system"],
+  "publisher": "ArtTemiy",
   "version": "0.0.3",
   "private": true,
   "license": "MIT",
@@ -10,9 +15,6 @@
   "engines": {
     "vscode": "^1.46.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "onStartupFinished"
   ],
