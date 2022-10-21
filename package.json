@@ -5,9 +5,17 @@
   "categories": [
     "Other"
   ],
-  "keywords": ["vscode", "file", "files", "manager", "filemanager", "filesystem", "system"],
+  "keywords": [
+    "vscode",
+    "file",
+    "files",
+    "manager",
+    "filemanager",
+    "filesystem",
+    "system"
+  ],
   "publisher": "ArtTemiy",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "repository": "git@github.com:ArtTemiy/FileManagerVsCodeExtension.git",
