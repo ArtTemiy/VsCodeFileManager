@@ -4,3 +4,8 @@ export interface ElementInfo {
     name: string;
     type: ElementType;
 };
+
+export interface Element {
+    dir: string;
+    name: string;
+}

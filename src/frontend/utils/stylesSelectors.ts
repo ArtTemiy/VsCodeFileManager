@@ -1,4 +1,4 @@
-import { ElementInfo } from "../../types/ElementInfo";
+import { ElementInfo } from "../../types/types";
 
 export interface ElementStyleAttrs {
     selected?: boolean;
