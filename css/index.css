@@ -7,11 +7,11 @@
     width: 33%;
 }
 
-body, h1, h2, h3, h4, p, a, li, ul, ol, input {
+body, h1, h2, h3, h4, p, a, li, ul, ol, input, button {
     font-family: 'Roboto Mono', monospace;
     /* font-family: monospace; */
     margin: 0;
-    font-size: 90%;
+    /* font-size: 90%; */
     font-weight: normal;
     padding: 0;
     color: inherit;
@@ -27,7 +27,7 @@ input {
     border-radius: 0;
     width: 100%;
     margin-bottom: 10px;
-    font-size: inherit;
+    /* font-size: inherit; */
 }
 
 input:disabled {
@@ -57,15 +57,15 @@ a:hover, a:focus {
 }
 
 .currentDir {
-    padding: 10px;
-    padding-left: 20px;
+    /* padding: 3px; */
+    /* padding-left: 20px; */
     font-size: 100%;
     /* text-decoration: underline; */
     background-color: rgba(255, 255, 255, 0.1);
 }
 
 .element {
-    font-size: inherit;
+    /* font-size: inherit; */
     box-sizing: border-box;
     padding: 5px;
 }
@@ -121,4 +121,23 @@ a:hover, a:focus {
 
 .file-content {
     white-space: pre-wrap;
+}
+
+.path-button {
+    background-color: rgba(0, 0, 0, 0);
+    border: 0px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0;
+    padding: 10px;
+}
+
+.path-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.path-button + .path-button {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.path-button:first-child {
+    padding-left: 20px;
 }

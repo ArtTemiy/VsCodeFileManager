@@ -1,5 +1,6 @@
 export const uris = {
     goToDir: "goToDir",
+    goToDirAbs: "goToDirAbs",
     getDirInfo: "getDirInfo",
     initDir: "initDir",
     openFile: "openFile",

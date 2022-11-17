@@ -70,6 +70,14 @@ export function activate(context: vscode.ExtensionContext) {
 					});
 					return getUpdateCurrentDirectoryMessage();
 				});
+				server.addHandler(uris.goToDirAbs, "POST", (path: string): DirContentDescription => {
+					instanceStateStorage.set(manager, {
+						...instanceStateStorage.get(manager),
+						currentDirectory: path,
+						prevDir: undefined,
+					});
+					return getUpdateCurrentDirectoryMessage();
+				});
 				server.addHandler(uris.getDirInfo, "GET", (data: ClientGoToDirMessage) => {
 					if (data.dirName === LVL_UP_DIR) {
 						return [];

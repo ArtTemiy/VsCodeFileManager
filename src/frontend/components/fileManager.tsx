@@ -10,6 +10,7 @@ import { DirContentDescription, ElementContentInfo } from "../../types/ServerMes
 
 import { FilesList } from "./filesList";
 import { Preview } from "./preview";
+import { PathString } from "./pathString";
 
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -53,22 +54,28 @@ export const FilesManager = () => {
         });
     }, [elementsList, setNextElementInfo, currentDir]);
 
+    const processGoToDirResponse = (data: DirContentDescription) => {
+        setDirInfo({
+            currentDir: data.currentDir,
+            elementsList: data.elementsList,
+            filteredElementList: data.elementsList,
+        });
+        const selected = data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0;
+        setSelected(selected);
+        updateNextElement(data.elementsList[selected], data.currentDir);
+    };
+
     const sendClientGoToDirMessage = useCallback((dirName: string) => {
         const request: ClientGoToDirMessage = {
             currentDir: currentDir,
             dirName: dirName,
         };
-        vscodeClient.sendRequest(uris.goToDir, "POST", request, (data: DirContentDescription) => {
-            setDirInfo({
-                currentDir: data.currentDir,
-                elementsList: data.elementsList,
-                filteredElementList: data.elementsList,
-            });
-            const selected = data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0;
-            setSelected(selected);
-            updateNextElement(data.elementsList[selected], data.currentDir);
-        });
+        vscodeClient.sendRequest(uris.goToDir, "POST", request, processGoToDirResponse);
     }, [setSelected, currentDir, updateNextElement]);
+
+    const goToAbsDir = useCallback((path: string) => {
+        vscodeClient.sendRequest(uris.goToDirAbs, "POST", path, processGoToDirResponse);
+    }, []);
 
     const sendClientOpenFileMessage = useCallback((fileName: string) => {
         const request: ClientOpenFileMessage = {
@@ -148,7 +155,10 @@ export const FilesManager = () => {
     
     return (
         <>
-            {currentDir ? (<h1 className={classNames("currentDir")}>{currentDir}</h1>) : (<h1>Loading...</h1>)}
+            {currentDir ? (<PathString
+                path={currentDir}
+                goToDirResponseCallback={processGoToDirResponse}
+            />) : (<h1 >Loading...</h1>)}
             <input
                     className={classNames()}
                     type="text"
