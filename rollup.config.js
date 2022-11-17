@@ -14,13 +14,12 @@ export default [
         plugins: [
             ts(),
             resolve(),
-            commonjs({ 
+            commonjs({
                 include: 'node_modules/**',
             }),
             replace({
                 "process.env.NODE_ENV": JSON.stringify( 'production' )
             })
-            // nodeGlobals(),
         ]
     },
     {
@@ -29,7 +28,7 @@ export default [
             dir: 'out',
             format: 'cjs'
         },
-        external: [ 'fs', 'vscode' ], // tells Rollup 'I know what I'm doing here'
+        external: [ 'fs', 'vscode' ],
         plugins: [
             ts(),
             resolve(),
