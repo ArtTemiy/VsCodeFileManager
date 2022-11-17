@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 					const state = instanceStateStorage.get(manager);
 					return {
 						currentDir: state.currentDirectory,
-						elementsList: expended ? getExpendedDirContent(state.currentDirectory).elementsList : getElementsList(state.currentDirectory),
+						elementsList: getExpendedDirContent(state.currentDirectory).elementsList,
 						prevDir: state.prevDir,
 					};
 				};
@@ -68,17 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
 						prevDir: data.name === LVL_UP_DIR ? path.basename(instanceStateStorage.get(manager).currentDirectory) : undefined,
 					});
 					return getUpdateCurrentDirectoryMessage(data.expended || false);
-				});
-				server.addHandler(uris.getDirInfo, "GET", (data: ClientGoToDirMessage) => {
-					if (data.name === LVL_UP_DIR) {
-						return [];
-					}
-					const destPath = fs.realpathSync(path.join(data.dir, data.name));
-					const response: DirContentDescription = {
-						currentDir: destPath,
-						elementsList: getElementType(destPath) === "Directory" ? getElementsList(destPath) : [],
-					};
-					return response;
 				});
 				server.addHandler(uris.elementInfo, "GET", (data: ClientElementInfoMessage): ElementContentInfo => {
 					return getElementContentInfo(data);
