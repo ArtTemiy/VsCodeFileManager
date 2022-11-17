@@ -1,20 +1,28 @@
-import { Element } from "./types";
-
 export type ClientMessageType = "InitDir" | "GoToDir" | "OpenFile";
 
 export interface ClientInitDirMessage {}
 
-export interface ClientGoToDirMessage extends Element {
-    expended?: boolean;
+export interface ClientGoToDirMessage {
+    currentDir: string;
+    dirName: string;
 };
 
-export interface ClientOpenFileMessage extends Element {};
+export interface ClientOpenFileMessage {
+    currentDir: string;
+    fileName: string;
+};
 
-export interface ClientResolveSymlinkType extends Element {};
+export interface ClientResolveSymlinkType {
+    currentDir: string;
+    fileName: string;
+};
 
 export interface ClientMessage {
     type: ClientMessageType;
     payload: null | ClientInitDirMessage | ClientGoToDirMessage | ClientOpenFileMessage;
 };
 
-export interface ClientElementInfoMessage extends Element {};
+export interface ClientElementInfoMessage {
+    currentDir: string;
+    elementName: string;
+};

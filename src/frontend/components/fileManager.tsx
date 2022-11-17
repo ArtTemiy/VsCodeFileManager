@@ -2,49 +2,63 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import classNames from "classnames-ts";
 
 import { ClientElementInfoMessage, ClientGoToDirMessage, ClientOpenFileMessage, ClientResolveSymlinkType } from "../../types/ClientMessage";
-import { Element, ElementInfo, ElementType } from "../../types/types";
+import { ElementInfo, ElementType } from "../../types/ElementInfo";
 
 import { vscodeClient } from "../../vscode-api/client/client";
 import { uris } from "../../constants";
-import { DirContentDescription, DirContentExpendedDescription, ElementContentInfo } from "../../types/ServerMessage";
+import { DirContentDescription, ElementContentInfo } from "../../types/ServerMessage";
 
 import { FilesList } from "./filesList";
 import { Preview } from "./preview";
 
-const EMPTY_ELEMENT_INFO: ElementContentInfo = {
-    name: "",
-    type: "File",
-    content: {
-        data: "",
-    }
-};
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FilesManager = () => {
     const [dirInfo, setDirInfo] = useState<{
         currentDir: string,
-        elementsList: ElementContentInfo[],
-        filteredElementList: ElementContentInfo[],
+        elementsList: ElementInfo[],
+        filteredElementList: ElementInfo[],
     }>({
         currentDir: undefined,
         elementsList: [],
         filteredElementList: [],
     });
     const { currentDir, elementsList, filteredElementList } = dirInfo;
-    const [nextElementInfo, setNextElementInfo] = useState<ElementContentInfo>(EMPTY_ELEMENT_INFO);
+    const [nextElementInfo, setNextElementInfo] = useState<ElementContentInfo>({
+        type: "Directory",
+        content: {
+            elementsList: [],
+        }
+    });
     const [selected, setSelected] = useState<number>(0);
     const inputRef = useRef(null);
-    const updateNextElement = useCallback((element: ElementContentInfo) => {
-        setNextElementInfo(element);
-    }, [setNextElementInfo]);
 
-    const goToDir = useCallback((dirName: string) => {
-        const goToDirRequest: ClientGoToDirMessage = {
-            dir: currentDir,
-            name: dirName,
-            expended: true
+    const updateNextElement = useCallback((nextElement: ElementInfo, customCurrentDir?: string) => {
+        const usingCurrentDir = customCurrentDir || currentDir;
+        if (nextElement === undefined) {
+            setNextElementInfo({
+                type: "File",
+                content: {
+                    data: "",
+                }
+            });
+            return;
+        }
+        const request: ClientElementInfoMessage = {
+            currentDir: usingCurrentDir,
+            elementName: nextElement.name,
         };
-        vscodeClient.sendRequest(uris.goToDir, "POST", goToDirRequest, (data: DirContentDescription) => {
+        vscodeClient.sendRequest(uris.elementInfo, "GET", request, (response: ElementContentInfo) => {
+            setNextElementInfo(response);
+        });
+    }, [elementsList, setNextElementInfo, currentDir]);
+
+    const sendClientGoToDirMessage = useCallback((dirName: string) => {
+        const request: ClientGoToDirMessage = {
+            currentDir: currentDir,
+            dirName: dirName,
+        };
+        vscodeClient.sendRequest(uris.goToDir, "POST", request, (data: DirContentDescription) => {
             setDirInfo({
                 currentDir: data.currentDir,
                 elementsList: data.elementsList,
@@ -52,28 +66,27 @@ export const FilesManager = () => {
             });
             const selected = data.prevDir ? data.elementsList.findIndex(el => el.name === data.prevDir) : 0;
             setSelected(selected);
-            updateNextElement(data.elementsList[selected]);
+            updateNextElement(data.elementsList[selected], data.currentDir);
         });
-
     }, [setSelected, currentDir, updateNextElement]);
 
     const sendClientOpenFileMessage = useCallback((fileName: string) => {
         const request: ClientOpenFileMessage = {
-            dir: currentDir,
-            name: fileName,
+            currentDir: currentDir,
+            fileName: fileName,
         };
-        vscodeClient.sendRequest(uris.openFile, "POST", request, (_: any) => { });
+        vscodeClient.sendRequest(uris.openFile, "POST", request, (response: any) => { });
     }, [currentDir]);
 
     const processSymlink = useCallback((fileName: string) => {
         const request: ClientResolveSymlinkType = {
-            dir: currentDir,
-            name: fileName,
+            currentDir: currentDir,
+            fileName: fileName,
         };
         vscodeClient.sendRequest(uris.resolveSymlinkType, "GET", request, (response: ElementType) => {
             switch (response) {
                 case "Directory":
-                    goToDir(fileName);
+                    sendClientGoToDirMessage(fileName);
                     break;
                 case "File":
                     sendClientOpenFileMessage(fileName);
@@ -88,7 +101,7 @@ export const FilesManager = () => {
     const onClickElement = useCallback((element: ElementInfo) => {
         switch (element.type) {
             case "Directory":
-                goToDir(element.name);
+                sendClientGoToDirMessage(element.name);
                 break;
             case "File":
                 sendClientOpenFileMessage(element.name);
@@ -99,7 +112,7 @@ export const FilesManager = () => {
                 console.error(`Unimplemented behaviour for element type ${element.type}`);
                 break;
         }
-    }, [goToDir, sendClientOpenFileMessage]);
+    }, [sendClientGoToDirMessage, sendClientOpenFileMessage]);
 
     useEffect(() => {
         console.debug("use effect called");
@@ -112,7 +125,7 @@ export const FilesManager = () => {
             });
             const selectedIndex = data.elementsList.findIndex(el => el.name === data.prevDir);
             data.prevDir && setSelected(selectedIndex);
-            data.prevDir && updateNextElement(data.elementsList[selectedIndex]);
+            data.prevDir && updateNextElement(data.elementsList[selectedIndex], data.currentDir);
         });
     }, []);
     useEffect(() => {
@@ -120,6 +133,9 @@ export const FilesManager = () => {
         inputRef.current.value = "";
     }, [currentDir]);
 
+    const onFilterUpdateObj = {
+        func: (prefix: string) => {}
+    };
     const onFilterUpdate = useCallback((prefix: string) => {
         const newFilteredElementList = elementsList.filter((value: ElementInfo) => value.name.toLowerCase().startsWith(prefix.toLowerCase()));
         console.log(prefix, newFilteredElementList);

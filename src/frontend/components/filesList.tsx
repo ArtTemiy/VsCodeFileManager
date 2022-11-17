@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { ElementInfo } from "../../types/types";
+import { ElementInfo } from "../../types/ElementInfo";
 
 import { getElementStyle } from "../utils/stylesSelectors";
 import { LVL_UP_DIR } from "../../constants";

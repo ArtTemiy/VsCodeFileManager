@@ -1,4 +1,4 @@
-import { ElementType } from "../../types/types";
+import { ElementType } from "../../types/ElementInfo";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const FolderIcon = () => (<i className="codicon codicon-folder"></i>);
