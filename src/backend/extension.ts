@@ -9,6 +9,7 @@ import { instanceStateStorage } from "./extentionInstanceState";
 import { LVL_UP_DIR } from "../constants";
 import { Server } from "../vscode-api/server/server";
 import { uris } from "../constants";
+import { config } from "../config";
 
 const ADDITIONAL_LINKS_FILE_PATH = "";
 
@@ -104,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
 							return {
 								type: "File",
 								content: {
-									data: fs.readFileSync(pathToElement).toString(),
+									data: fs.readFileSync(pathToElement).subarray(0, config.MAX_CHARACTERS_OF_FILE).toString(),
 								}
 							};
 						} catch (error) {
