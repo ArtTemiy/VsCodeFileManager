@@ -6,7 +6,7 @@ import { vscodeClient } from "../../vscode-api/client/client";
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const PathString = (props: {path: string, goToDirResponseCallback: (data: DirContentDescription) => void}) => {
     const { path, goToDirResponseCallback } = props;
-    const directoriesList = path.split('/').map(dir => dir || '/');
+    const directoriesList = path === '/' ? ['/'] : path.split('/').map(dir => dir || '/');
 
     const goToDir = (index: number) => {
         const path = '/' + directoriesList.slice(1, index + 1).join('/');
